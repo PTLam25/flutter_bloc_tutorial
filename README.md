@@ -1,6 +1,8 @@
 # Flutter bloc туториал
 
-## Что такое архитектура
+## ВВЕДЕНИЕ
+
+### Что такое архитектура
 
 Архитектура нужно для создания маштабируемых приложениях, которое легко поддерживать, тестировать и
 изменять.
@@ -15,4 +17,55 @@
 
 Для решения каких-то задач используют уже готовые решение. Для дома - это как правильно сделать
 фундамент или каркас дома. В программирования есть [GRASP](https://ru.wikipedia.org/wiki/GRASP).
+
+### Путь изучения BLoC
+
+1) Future
+2) Stream
+3) Почитать паттерн [издатель-подписчик](https://refactoring.guru/ru/design-patterns/observer)
+   Это про реактивщину.
+4) Что
+   такое [реактивное программирования](https://www.didierboelens.com/2018/08/reactive-programming-streams-bloc/)
+5) RxDart - extension к dart stream и есть много готовых StreamTransformer для работы с стримами.
+6) [StreamTransformer](https://api.flutter.dev/flutter/dart-async/StreamTransformer-class.html) -
+   класс, в котором описина логика преобразования стрима (изменения порядка, сортировка, фильтрация
+   и что угодно). Спомощи него можно создать кастомный StreamTransformer.
+7) [Flutter bloc documentation](https://bloclibrary.dev/)
+
+Дополнительная информация:
+
+1) [Отличие BLoC - Provider - Redux](https://www.didierboelens.com/2019/04/bloc-scopedmodel-redux-comparison/)
+2) [Рекоммендация по написанию flutter bloc](https://gist.github.com/PlugFox/7ee89778d0145f3bba704dbc4e4002da)
+
+### Концепция BLoC
+
+BLoC позволяет 3 основные вещи:
+
+- снизить зацепления между модулями, так как мы для каждого модуля создаем свой bloc.
+- легко маштабировать, так как для нового модуля нам надо создать новый bloc
+- сделать приложения реакивным
+
+Также он легко тестируемый и есть готовые пакеты для теста bloc.
+
+## Flutter bloc
+
+### Cubit
+
+Cubit - это Stream (broadcast) только с состояниями и все. То есть когда мы вызываем функцию emit
+напрямую меняет состояние. А UI слушает stream состояние и билдиться как надо.
+
+### Bloc
+
+В Bloc в отличие от Cubit есть 2 streams:
+
+1) Stream состояний;
+2) Stream событий;
+
+А метод **mapEventToState** - это асинхронный генератор, который преобразует событий в состояние. А
+UI слушает (.listen) stream состояние и билдиться как надо.
+
+### Bloc vs Cubit
+
+
+
 
