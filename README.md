@@ -134,14 +134,98 @@ emit() в bloc напрямую, а делай через событии и на
 В main.dart инициализуем наш обсервер:
 
 ```dart
-Bloc.observer = AppObserver();
+Bloc.observer =
+
+AppObserver();
 ```
 
 ### Ошибки при создания bloc
+
 [Список ошибок] (https://gist.github.com/PlugFox/7ee89778d0145f3bba704dbc4e4002da).
 
+# State Management
 
+## State Management через BuildContext
 
+BuildContext может использоваться для передачи данных по дереву.
 
+Например, **Navigator** - это StateFullWidget и когда мы вызываем Navigator.of(context) мы получаем
+state Navigator. И мы в любом месте в дереве можем получить к нему доступ.
 
+**.of(context)** - это определенный статический метод для StatefulWidget для получения его состояния
+по дереву. В нем вызываем методы у context:
 
+- **findAncestorStateOfType**, который идет по дереву от текущего виджета, вверх к руту и до тех пор
+  не найдет ближайщий StateFullWidget с этим типом стейта.
+- **findRootAncestorStateOfType** похож как и метод выше, но возвращает самый дальний. Эти методы
+  можно вызывать в **initState**;
+
+Получения данныз через context имеет сложность **O(n)**, так как тем больше виджетов в дереве, тем
+дольше займет время прохода.<br>
+![img_1.png](img_1.png)
+Если это не часто используется например как навигатор, то нормально, но если часто например как
+Theme, то такой подход буде тормозить приложения.
+
+## State Management через InheritedWidget
+
+Например, нам нужно состояние при изменение, которых должны перестроить дерево виджетов, которые
+использует это состояние.<br> В Flutter это Theme и MediaQuery при изменение которых перестраивается
+все дерево.
+![img_3.png](img_3.png)![img_2.png](img_2.png)
+
+Под капотом InheritedWidget работает с BuildContext, то есть BuildContext есть поле тип **Map<Type,
+InheritedElement>**, который хранит в себе данные InheritedWidget.<br>
+Так как это мапа, то получения из него занимает сложность **O(1)**.
+
+Под капотом в виджете вызывается **context.dependOnInheritedWidgetOfExactType<Type>** и получаем
+самый ближайщий InheritedWidget и подписываемся на его изменения. Например, когда мы в виджете
+вызываем Theme.of(context).textTheme.headline1, то под капотом вызывается
+dependOnInheritedWidgetOfExactType<Theme> и данный виджет получается headline1 и подписывается на
+изменения Theme InheritedWidget.
+
+dependOnInheritedWidgetOfExactType в **initState**
+вызывать нельзя, но можно подписаться на зависимость в **didChangeDependencies**.
+
+Если в дереве более одного InheritedWidget, то последующий перезаписывает предыдущий в **Map<Type,
+InheritedElement>**.
+
+Когда мы получаем данные с InheritedWidget в каком-то виджете, то мы еще подписываемся на изменения
+InheritedWidget. И когда данные меняется в InheritedWidget, то вызовится **didChangeDependencies**(
+вызывается при изменения у всех подписанных объектов (InheritedWidget)) и послне этого метода
+вызовется **build** у того виджета.
+
+Чтобы не перестраивать виджет при изменения подписанного InheritedWidget, можно использовать
+метод **getElementForInheritedWidgetOfExactType**, который просто получает сам InheritedWidget, но
+не подписывается на его изменение. Вызов данного метода возможен в **initState**.
+
+Так можем создать метод и в зависимости от параметра listen подписываться и не подписываться на
+изменения InheritedWidget:
+![img_2.png](img_2.png)
+
+### Использования
+
+Например можно использовать для кастомной темы и цветов и получить их через context.
+
+## State Management через StatefulWidget + InheritedWidget
+
+InheritedWidget предоставляет доступ к состояния за O(1), но у него нету жизненного цикла. То есть
+мы не сможем что-то создать и убить его когда удалиться InheritedWidget.
+
+Поэтому чтобы иметь жизненный цикл и быстрый доступ к состоянию можно сочетать StatefulWidget +
+InheritedWidget.
+
+Такой подход под капотом юзается у **Provider**.
+
+## Дополнительная информация
+
+### Когда используется StateFullWidget?
+
+1) Когда надо использовать его жизненные циклы
+2) Когда нужно состояния для UI (анимации, состояния кнопки в UI)
+
+Чистый bloc (не через flutter_bloc) создавали в жизненный циклы StateFullWidget.
+
+### debugFillProperties method in StateFullWidget
+
+debugFillProperties метод позволяет добавляется свои свойства, которые будут видны в Flutter
+inspector.
