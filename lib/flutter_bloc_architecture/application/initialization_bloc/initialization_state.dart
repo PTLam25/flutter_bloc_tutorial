@@ -13,7 +13,7 @@ class InitializationInProgressState extends InitializationState {
   final double progressValue;
 
   const InitializationInProgressState(this.progressValue);
-  
+
   @override
   List<Object> get props => [progressValue];
 }
